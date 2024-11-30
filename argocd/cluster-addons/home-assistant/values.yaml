@@ -44,3 +44,5 @@ configuration:
     script: !include scripts.yaml
     scene: !include scenes.yaml
     homekit:
+    sonos:
+    bluetooth:
