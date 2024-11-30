@@ -13,3 +13,5 @@ ingress:
   - secretName: home-assistant-tls
     hosts:
     - hass.beaners.club
+configuration:
+  enabled: true
