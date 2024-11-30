@@ -24,6 +24,7 @@ persistence:
   storageClass: local-path
 configuration:
   enabled: true
+  forceInit: false
   templateConfig: |-
     # Loads default set of integrations. Do not remove.
     default_config:
