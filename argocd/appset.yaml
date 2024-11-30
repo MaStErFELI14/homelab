@@ -1,0 +1,40 @@
+# Only used for bootstrapping
+# Only to be modified in-line with argocd-apps/values.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: homelab
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+  - git:
+      repoURL: https://github.com/MaStErFELI14/homelab.git
+      revision: main
+      files:
+      - path: "argocd/cluster-addons/*/app.yaml"
+  template:
+    metadata:
+      name: "{{index .path.segments 2}}"
+    spec:
+      project: default
+      sources:
+      - chart: "{{ .chart }}"
+        repoURL: "{{ .repoURL }}"
+        targetRevision: "{{ .targetRevision }}"
+        helm:
+          valueFiles:
+          - "$values/{{ .path.path }}/values.yaml"
+      - repoURL: https://github.com/MaStErFELI14/homelab.git
+        targetRevision: main
+        ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          prune: true
+          allowEmpty: true
+          selfHeal: true

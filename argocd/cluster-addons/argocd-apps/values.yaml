@@ -1,0 +1,118 @@
+# -- Deploy Argo CD ApplicationSets within this helm release
+# @default -- `{}` (See [values.yaml])
+## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/
+applicationsets:
+  homelab:
+    namespace: argocd
+    goTemplate: true
+    generators:
+    - git:
+        repoURL: https://github.com/MaStErFELI14/homelab.git
+        revision: main
+        files:
+        - path: "argocd/cluster-addons/*/app.yaml"
+    template:
+      metadata:
+        name: "{{index .path.segments 2}}"
+      spec:
+        project: default
+        sources:
+        - chart: "{{ .chart }}"
+          repoURL: "{{ .repoURL }}"
+          targetRevision: "{{ .targetRevision }}"
+          helm:
+            valueFiles:
+            - "$values/{{ .path.path }}/values.yaml"
+        - repoURL: https://github.com/MaStErFELI14/homelab.git
+          targetRevision: main
+          ref: values
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: "{{ .namespace }}"
+        syncPolicy:
+          syncOptions:
+          - CreateNamespace=true
+          automated:
+            prune: true
+            allowEmpty: true
+            selfHeal: true
+#  guestbook:
+#    namespace: argocd
+#    additionalLabels: {}
+#    additionalAnnotations: {}
+#    finalizers:
+#    - resources-finalizer.argocd.argoproj.io
+#    # See PR #10026 (ArgoCD v2.5 or later)
+#    # goTemplate: false
+#    generators:
+#    - git:
+#        repoURL: https://github.com/argoproj/argocd-example-apps.git
+#        revision: HEAD
+#        directories:
+#        - path: guestbook
+#        - path: kustomize-*
+#    # Ref https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Controlling-Resource-Modification/#allow-temporarily-toggling-auto-sync
+#    ignoreApplicationDifferences:
+#    - jsonPointers:
+#      - /spec/syncPolicy
+#    # Progressive Syncs is an experimental feature and it must be explicitly enabled
+#    # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Progressive-Syncs/#enabling-progressive-syncs
+#    strategy:
+#      type: RollingSync
+#      rollingSync:
+#        steps:
+#        - matchExpressions:
+#          - key: project
+#            operator: In
+#            values:
+#            - guestbook
+#        - matchExpressions:
+#          - key: project
+#            operator: In
+#            values:
+#            - kustomize-foo
+#            - kustomize-bar
+#    template:
+#      metadata:
+#        name: '{{path.basename}}'
+#        labels:
+#          project: '{{path.basename}}'
+#        annotations: {}
+#      spec:
+#        project: default
+#        source:
+#          repoURL: https://github.com/argoproj/argocd-example-apps.git
+#          targetRevision: HEAD
+#          path: '{{path}}'
+#        destination:
+#          server: https://kubernetes.default.svc
+#          namespace: default
+#        syncPolicy:
+#          automated:
+#            prune: false
+#            selfHeal: false
+#        ignoreDifferences:
+#        - group: apps
+#          kind: Deployment
+#          jsonPointers:
+#          - /spec/replicas
+#        info:
+#        - name: url
+#          value: https://argoproj.github.io/
+#    syncPolicy:
+#      # Set Application finalizer
+#      preserveResourcesOnDeletion: false
+#    # Templating is only available on string type
+#    templatePatch: |
+#      spec:
+#        source:
+#          helm:
+#            valueFiles:
+#            {{- range $valueFile := .valueFiles }}
+#              - {{ $valueFile }}
+#            {{- end }}
+#      {{- if .autoSync }}
+#        syncPolicy:
+#          automated:
+#            prune: {{ .prune }}
+#      {{- end }}

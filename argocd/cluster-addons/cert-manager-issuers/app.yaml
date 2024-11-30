@@ -1,0 +1,4 @@
+repoURL: https://charts.adfinis.com
+targetRevision: 0.3.0
+chart: cert-manager-issuers
+namespace: cert

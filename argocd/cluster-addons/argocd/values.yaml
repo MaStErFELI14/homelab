@@ -1,0 +1,14 @@
+global:
+  domain: argocd.beaners.club
+server:
+  certificate:
+    enabled: true
+    issuer:
+      kind: ClusterIssuer
+      name: letsencrypt-staging
+  ingress:
+    enabled: true
+    ngressClassName: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    tls: true
