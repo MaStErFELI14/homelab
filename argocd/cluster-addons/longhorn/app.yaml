@@ -1,5 +1,0 @@
-repoURL: https://charts.longhorn.io
-targetRevision: 1.7.2
-chart: longhorn
-namespace: storage
-# Need to sync longhorn service account first because presync job requires it
