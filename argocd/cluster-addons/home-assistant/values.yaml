@@ -13,6 +13,11 @@ ingress:
   - secretName: home-assistant-tls
     hosts:
     - hass.beaners.club
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  storageClass: longhorn
 configuration:
   enabled: true
   templateConfig: |-
