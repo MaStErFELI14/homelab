@@ -12,3 +12,6 @@ server:
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
     tls: true
+configs:
+  params:
+    server.insecure: false
