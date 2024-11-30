@@ -8,7 +8,7 @@ server:
       name: letsencrypt-staging
   ingress:
     enabled: true
-    ngressClassName: traefik
+    ingressClassName: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
     tls: true
