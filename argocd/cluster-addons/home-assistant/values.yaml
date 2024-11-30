@@ -8,7 +8,7 @@ ingress:
   - host: hass.beaners.club
     paths:
     - path: /
-      pathType: ImplementationSpecific
+      pathType: Prefix
   tls:
   - secretName: home-assistant-tls
     hosts:
