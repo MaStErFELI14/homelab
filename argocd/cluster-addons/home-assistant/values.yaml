@@ -45,5 +45,8 @@ configuration:
     script: !include scripts.yaml
     scene: !include scenes.yaml
     homekit:
+    - filter:
+        include_domains:
+        - media_player
     sonos:
     bluetooth:
