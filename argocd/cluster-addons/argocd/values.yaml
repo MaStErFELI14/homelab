@@ -5,7 +5,7 @@ server:
     enabled: true
     issuer:
       kind: ClusterIssuer
-      name: letsencrypt-staging
+      name: letsencrypt
   ingress:
     enabled: true
     ingressClassName: traefik
