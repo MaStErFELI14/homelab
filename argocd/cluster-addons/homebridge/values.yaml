@@ -5,6 +5,8 @@ ingress:
   main:
     enabled: true
     primary: true
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
     ingressClassName: traefik
     hosts:
     - host: homebridge.beaners.club
@@ -19,12 +21,3 @@ ingress:
       certManager:
         enabled: true
         certificateIssuer: letsencrypt
-      traefik:
-        enabled: true
-        entrypoints:
-          - websecure
-        forceTLS: true
-ingressMiddlewares:
-  traefik:
-    tc-basic-secure-headers:
-      enabled: true
