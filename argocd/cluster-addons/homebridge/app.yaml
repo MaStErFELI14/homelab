@@ -1,0 +1,4 @@
+repoURL: oci://tccr.io/truecharts/homebridge
+targetRevision: 10.1.2
+chart: homebridge
+namespace: homebridge
