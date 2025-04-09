@@ -7,7 +7,7 @@ ingress:
     primary: true
     ingressClassName: traefik
     hosts:
-    - homebridge.beaners.club
+    - host: homebridge.beaners.club
       paths:
       - path: /
         pathType: Prefix
