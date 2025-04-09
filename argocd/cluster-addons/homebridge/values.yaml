@@ -1,3 +1,27 @@
 global:
   fallbackDefaults:
     storageClass: local-path
+ingress:
+  main:
+    enabled: true
+    primary: true
+    ingressClassName: traefik
+    hosts:
+    - homebridge.beaners.club
+      paths:
+      - path: /
+        pathType: Prefix
+    tls:
+    - secretName: homebridge-tls
+      certificateIssuer: letsencrypt
+      hosts:
+      - homebridge.beaners.club
+    integrations:
+      certManager:
+        enabled: true
+        certificateIssuer: letsencrypt
+      traefik:
+        enabled: true
+        entrypoints:
+          - websecure
+        forceTLS: true
