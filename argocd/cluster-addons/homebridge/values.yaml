@@ -24,3 +24,7 @@ ingress:
         entrypoints:
           - websecure
         forceTLS: true
+ingressMiddlewares:
+  traefik:
+    tc-basic-secure-headers:
+      enabled: true
