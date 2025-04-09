@@ -1,6 +1,8 @@
 global:
   fallbackDefaults:
     storageClass: local-path
+  traefik:
+    commonMiddlewares: []
 ingress:
   main:
     enabled: true
@@ -21,22 +23,8 @@ ingress:
       certManager:
         enabled: true
         certificateIssuer: letsencrypt
-ingressMiddlewares:
-  traefik:
-    tc-basic-secure-headers:
-      enabled: false
-      type: headers
-      data:
-        accessControlAllowMethods:
-          - GET
-          - OPTIONS
-          - HEAD
-          - PUT
-        accessControlMaxAge: 100
-        stsSeconds: 63072000
-        forceSTSHeader: true
-        contentTypeNosniff: true
-        browserXssFilter: true
-        referrerPolicy: same-origin
-        customRequestHeaders:
-          X-Forwarded-Proto: "https"
+      traefik:
+        enabled: true
+        entrypoints:
+          - websecure
+        forceTLS: true
