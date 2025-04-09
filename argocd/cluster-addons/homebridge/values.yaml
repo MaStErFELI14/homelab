@@ -4,6 +4,7 @@ global:
   traefik:
     commonMiddlewares: []
     enableFixedMiddlewares: false
+    fixedMiddlewares: []
 ingress:
   main:
     enabled: true
