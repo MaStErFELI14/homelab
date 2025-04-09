@@ -3,6 +3,7 @@ global:
     storageClass: local-path
   traefik:
     commonMiddlewares: []
+    enableFixedMiddlewares: false
 ingress:
   main:
     enabled: true
