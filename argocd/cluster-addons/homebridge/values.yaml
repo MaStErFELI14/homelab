@@ -13,7 +13,6 @@ ingress:
         pathType: Prefix
     tls:
     - secretName: homebridge-tls
-      certificateIssuer: letsencrypt
       hosts:
       - homebridge.beaners.club
     integrations:
