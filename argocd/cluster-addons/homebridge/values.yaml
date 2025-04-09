@@ -5,6 +5,9 @@ global:
     commonMiddlewares: []
     enableFixedMiddlewares: false
     fixedMiddlewares: []
+podOptions:
+  hostNetwork: true
+  hostUsers: true
 ingress:
   main:
     enabled: true
