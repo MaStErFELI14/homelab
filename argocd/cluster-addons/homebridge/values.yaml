@@ -14,9 +14,6 @@ service:
       main:
         protocol: http
         port: 8581
-  miele:
-    enabled: true
-    ports:
       miele:
         protocol: http
         port: 8582
