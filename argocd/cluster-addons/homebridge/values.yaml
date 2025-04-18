@@ -33,7 +33,7 @@ ingress:
       paths:
       - path: /
         pathType: Prefix
-      - path: /miele
+      - path: /initialize_server
         pathType: Prefix
         overrideService:
           name: miele
