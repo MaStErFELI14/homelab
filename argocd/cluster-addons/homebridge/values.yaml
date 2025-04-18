@@ -14,6 +14,9 @@ service:
       main:
         protocol: http
         port: 8581
+  miele:
+    enabled: true
+    ports:
       miele:
         enabled: true
         protocol: http
@@ -30,6 +33,11 @@ ingress:
       paths:
       - path: /
         pathType: Prefix
+      - path: /miele
+        pathType: Prefix
+        overrideService:
+          name: miele
+          port: 8582
     tls:
     - secretName: homebridge-tls
       hosts:
