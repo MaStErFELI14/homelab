@@ -8,6 +8,15 @@ global:
 podOptions:
   hostNetwork: true
   hostUsers: true
+service:
+  main:
+    ports:
+      main:
+        protocol: http
+        port: 8581
+      miele:
+        protocol: http
+        port: 8582
 ingress:
   main:
     enabled: true
