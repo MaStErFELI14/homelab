@@ -18,13 +18,6 @@ service:
         enabled: true
         protocol: http
         port: 8582
-  miele:
-    enabled: true
-    ports:
-      miele:
-        enabled: true
-        protocol: http
-        port: 8582
 ingress:
   main:
     enabled: true
