@@ -38,3 +38,15 @@
 ## Security & Configuration Tips
 - Do not commit real secrets. Prefer an external secret manager; if using `k8s-secrets.yaml`, store placeholders and apply real values out-of-band (base64-encoded).
 - Ensure issuer/secret names match across `cert-manager-issuers` and any ingress TLS settings.
+
+## Home Assistant & Matter
+- Home Assistant: runs in `home` with Ingress TLS (Traefik) and `hostNetwork: true`; `hostPort` is disabled; PVC uses `local-path`.
+- Trusted proxies: set in `argocd/cluster-addons/home-assistant/values.yaml` under `configuration.trusted_proxies` to your ingress/LAN CIDRs.
+- Matter Server: chart `charts-derwitt-dev/home-assistant-matter-server@3.0.1`, namespace `home`.
+  - Service DNS: `matter-home-assistant-matter-server.home.svc.cluster.local:5580` (ClusterIP).
+  - Network: `hostNetwork: true` (chart default), `networkInterface: enp0s25`.
+- Connect HA → Matter: in Home Assistant, set the Matter server URL to `http://matter-home-assistant-matter-server.home.svc.cluster.local:5580`.
+- Verify after sync:
+  - `kubectl -n home get pods,svc,sts | egrep 'home-assistant|matter'`
+  - `kubectl -n home logs -l app.kubernetes.io/name=home-assistant --tail=100`
+  - `kubectl -n home logs -l app.kubernetes.io/name=home-assistant-matter-server --tail=100`
