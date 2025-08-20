@@ -2,6 +2,7 @@ hostPort:
   enabled: false
   port: 8123
 hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
 ingress:
   enabled: true
   className: traefik
