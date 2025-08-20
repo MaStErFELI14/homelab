@@ -4,7 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 # Required by the chart; adjust to your node interface (e.g., eth0, enp1s0).
-networkInterface: eth0
+networkInterface: enp0s25
 
 bluetoothCommissioning:
   enabled: false
