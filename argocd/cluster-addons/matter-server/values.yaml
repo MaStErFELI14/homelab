@@ -1,0 +1,32 @@
+# Minimal values for Home Assistant Matter Server
+
+image:
+  pullPolicy: IfNotPresent
+
+# Required by the chart; adjust to your node interface (e.g., eth0, enp1s0).
+networkInterface: eth0
+
+bluetoothCommissioning:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 5580
+
+ingress:
+  enabled: false
+
+persistence:
+  storageClassName: local-path
+  size: 2Gi
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+
+podAnnotations:
+  reloader.stakater.com/auto: "true"

@@ -1,0 +1,4 @@
+repoURL: https://charts.derwitt.dev
+targetRevision: "3.0.1"
+chart: home-assistant-matter-server
+namespace: home
