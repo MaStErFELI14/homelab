@@ -1,5 +1,5 @@
 hostPort:
-  enabled: true
+  enabled: false
   port: 8123
 hostNetwork: true
 ingress:
@@ -25,6 +25,9 @@ persistence:
 configuration:
   enabled: true
   forceInit: true
+  trusted_proxies:
+  - 10.0.0.0/8
+  - 192.168.0.0/16
   templateConfig: |-
     # Loads default set of integrations. Do not remove.
     default_config:
