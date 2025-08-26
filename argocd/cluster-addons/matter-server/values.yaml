@@ -2,7 +2,6 @@
 
 image:
   pullPolicy: IfNotPresent
-  tag: "8.1.0b0"
 
 # Required by the chart; adjust to your node interface (e.g., eth0, enp1s0).
 networkInterface: enp0s25
