@@ -5,10 +5,10 @@ hostNetwork: true
 dnsPolicy: ClusterFirstWithHostNet
 resources:
   requests:
-    cpu: 100m
+    cpu: 200m
     memory: 256Mi
   limits:
-    cpu: 500m
+    cpu: 2000m
     memory: 768Mi
 ingress:
   enabled: true
