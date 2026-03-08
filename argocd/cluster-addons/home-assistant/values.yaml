@@ -2,6 +2,8 @@ hostPort:
   enabled: false
   port: 8123
 hostNetwork: true
+securityContext:
+  privileged: true
 dnsPolicy: ClusterFirstWithHostNet
 ingress:
   enabled: true
@@ -64,5 +66,3 @@ configuration:
           - sensor.washing_machine_remaining_time
           - sensor.washer_remaining_minutes
           # Add more entities here as needed
-    sonos:
-    bluetooth:
