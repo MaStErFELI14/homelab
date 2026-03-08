@@ -2,8 +2,6 @@ hostPort:
   enabled: false
   port: 8123
 hostNetwork: true
-securityContext:
-  privileged: true
 dnsPolicy: ClusterFirstWithHostNet
 ingress:
   enabled: true
