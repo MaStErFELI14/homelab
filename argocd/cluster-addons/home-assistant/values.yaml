@@ -3,6 +3,13 @@ hostPort:
   port: 8123
 hostNetwork: true
 dnsPolicy: ClusterFirstWithHostNet
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
 ingress:
   enabled: true
   className: traefik
@@ -58,9 +65,3 @@ configuration:
             state: >-
               {% set v = states('sensor.washing_machine_remaining_time') %}
               {{`{{`}} (v | as_timedelta).total_seconds() // 60 if v not in ['unknown','unavailable','none','None',''] else 0 {{`}}`}}
-    homekit:
-      filter:
-        include_entities:
-          - sensor.washing_machine_remaining_time
-          - sensor.washer_remaining_minutes
-          # Add more entities here as needed

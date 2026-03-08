@@ -8,19 +8,19 @@ global:
 podOptions:
   hostNetwork: true
   hostUsers: true
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
 service:
   main:
     ports:
       main:
         protocol: http
         port: 8581
-  miele:
-    enabled: true
-    ports:
-      miele:
-        enabled: true
-        protocol: http
-        port: 8582
 ingress:
   main:
     enabled: true
@@ -33,11 +33,6 @@ ingress:
       paths:
       - path: /
         pathType: Prefix
-      - path: /initialize_server
-        pathType: Prefix
-        overrideService:
-          name: miele
-          port: 8582
     tls:
     - secretName: homebridge-tls
       hosts:

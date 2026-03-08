@@ -1,1 +1,4 @@
 k8s-secrets.yaml
+.DS_Store
+docs/
+CLAUDE.md
