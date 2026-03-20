@@ -47,3 +47,5 @@ configuration:
         - {{ . }}
         {{- end }}
     {{- end}}
+
+    automation: !include automations.yaml
