@@ -49,3 +49,18 @@ configuration:
     {{- end}}
 
     automation: !include automations.yaml
+
+    rest_command:
+      lifx_flame_effect:
+        url: "https://api.lifx.com/v1/lights/all/effects/flame"
+        method: POST
+        headers:
+          Authorization: !secret lifx_auth_header
+        content_type: "application/json"
+        payload: '{"period": 5, "power_on": true}'
+      lifx_stop_effect:
+        url: "https://api.lifx.com/v1/lights/all/effects/off"
+        method: POST
+        headers:
+          Authorization: !secret lifx_auth_header
+        content_type: "application/json"
