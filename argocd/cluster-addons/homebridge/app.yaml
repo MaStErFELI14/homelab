@@ -1,4 +1,4 @@
-repoURL: tccr.io/truecharts
-targetRevision: 10.1.2
-chart: homebridge
+repoURL: ghcr.io/bjw-s-labs/helm
+targetRevision: 5.2.1
+chart: app-template
 namespace: homebridge
