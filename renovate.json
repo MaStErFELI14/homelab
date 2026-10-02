@@ -6,7 +6,7 @@
     {
       "customType": "regex",
       "description": "Helm chart versions declared in argocd/cluster-addons/*/app.yaml",
-      "fileMatch": ["^argocd/cluster-addons/[^/]+/app\\.yaml$"],
+      "managerFilePatterns": ["/^argocd/cluster-addons/[^/]+/app\\.yaml$/"],
       "matchStrings": [
         "repoURL: (?<registryUrl>\\S+)\\ntargetRevision: (?<currentValue>\\S+)\\nchart: (?<depName>\\S+)"
       ],
