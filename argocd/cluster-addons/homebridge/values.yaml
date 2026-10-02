@@ -97,7 +97,14 @@ ingress:
 persistence:
   config:
     type: persistentVolumeClaim
-    existingClaim: homebridge-config
+    accessMode: ReadWriteOnce
+    size: 100Gi
+    storageClass: local-path
+    # bind to the existing local-path volume that holds the Homebridge config
+    volumeName: pvc-208339f8-b612-457e-9de7-98602251f861
+    # never let Argo prune the claim that holds the config
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false
     advancedMounts:
       homebridge:
         main:
