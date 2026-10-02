@@ -1,0 +1,6 @@
+[Unit]
+Description=k3s datastore and PVC backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/k3s-backup.sh
