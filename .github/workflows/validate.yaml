@@ -1,10 +1,21 @@
 name: validate
 on:
   pull_request:
-    paths: ["argocd/**", ".github/workflows/validate.yaml"]
+    paths: ["argocd/**", "renovate.json", ".github/workflows/validate.yaml"]
   workflow_dispatch:
 
 jobs:
+  renovate-config:
+    name: renovate config
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+    - name: validate renovate.json
+      run: npx --yes --package renovate@44 -- renovate-config-validator --strict
+
   render:
     name: render charts
     runs-on: ubuntu-latest
