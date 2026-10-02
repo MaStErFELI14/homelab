@@ -1,0 +1,21 @@
+# Template: one hop of the k3s upgrade staircase (single control-plane node).
+# Do NOT apply directly; use ../upgrade-step.sh <version>, which substitutes
+# __K3S_VERSION__ (e.g. v1.31.14+k3s1) and takes a backup first.
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: k3s-server
+  namespace: system-upgrade
+spec:
+  concurrency: 1
+  cordon: true
+  nodeSelector:
+    matchExpressions:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+  serviceAccountName: system-upgrade
+  tolerations:
+  - operator: Exists
+  upgrade:
+    image: rancher/k3s-upgrade
+  version: __K3S_VERSION__
