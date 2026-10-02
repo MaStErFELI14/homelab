@@ -4,7 +4,7 @@
 # pinned Plan, waits for the node to report the new version, then checks pods.
 set -euo pipefail
 ver=${1:?usage: $0 <k3s version, e.g. v1.31.14+k3s1>}
-host=${NUC:-root@192.168.0.252}
+host=${NUC:?set NUC=user@host (SSH target of the k3s node)}
 cd "$(dirname "$0")"
 
 echo ">> backup"
