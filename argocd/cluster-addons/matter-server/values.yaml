@@ -43,3 +43,8 @@ resources:
 
 podAnnotations:
   reloader.stakater.com/auto: "true"
+
+# matter.js server needs several minutes to migrate/initialize nodes on first start;
+# disable probes so it is not killed before it listens on 5580.
+livenessProbe: null
+readinessProbe: null
