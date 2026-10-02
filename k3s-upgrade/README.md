@@ -14,8 +14,7 @@ kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/d
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/download/v0.20.2/system-upgrade-controller.yaml
 kubectl apply -f plans/server-plan-channel.yaml
 
-# nightly backups (on the NUC, as root)
-scp -r host/backup root@192.168.0.252:/root/ && ssh root@192.168.0.252 /root/backup/install.sh
+# nightly backups (on the node, as root): copy host/backup there and run install.sh
 ```
 
 Offsite copy: put `BACKUP_REMOTE=user@host:/path` in `/etc/default/k3s-backup`.

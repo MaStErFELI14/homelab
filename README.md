@@ -1,6 +1,6 @@
 # Homelab
 
-GitOps-managed homelab on an Intel NUC (`bean-nuc`, Ubuntu 24.04) running single-node k3s, deployed with Argo CD. Everything under `argocd/cluster-addons/` is reconciled from `main`.
+GitOps-managed homelab on an Intel NUC running single-node k3s, deployed with Argo CD. Everything under `argocd/cluster-addons/` is reconciled from `main`.
 
 ## Services
 
@@ -8,10 +8,10 @@ GitOps-managed homelab on an Intel NUC (`bean-nuc`, Ubuntu 24.04) running single
 |---------|------|-------|
 | Argo CD | argocd.beaners.club | Self-managed |
 | Home Assistant | hass.beaners.club | `hostNetwork`, PVC on `local-path` |
-| Matter server | matter.beaners.club | matter.js server (`ws://127.0.0.1:5580/ws`), `hostNetwork` |
+| Matter server | matter.beaners.club | matter.js server, `hostNetwork` |
 | Homebridge | homebridge.beaners.club | bjw-s `app-template`, PVC retained |
 
-Also: Traefik (bundled with k3s), cert-manager (Let's Encrypt via Cloudflare DNS-01, `*.beaners.club`), Cloudflare DNS, Unifi Cloud Gateway with NextDNS split DNS.
+Also: Traefik (bundled with k3s), cert-manager (Let's Encrypt via Cloudflare DNS-01, `*.beaners.club`), Cloudflare DNS.
 Exact versions live in each addon's `app.yaml`; the cluster itself is on the k3s stable channel (see below).
 
 ## Repository layout
@@ -22,7 +22,7 @@ argocd/
   cluster-addons/<name>/       # app.yaml (chart source) + values.yaml (overrides)
     argocd/  argocd-apps/  cert-manager/  cert-manager-issuers/
     home-assistant/  homebridge/  matter-server/
-host/backup/                   # Nightly k3s backup (systemd timer), installed on the NUC
+host/backup/                   # Nightly k3s backup (systemd timer), installed on the node
 k3s-upgrade/                   # system-upgrade-controller plans + staged upgrade script
 .github/workflows/validate.yaml  # helm template of every chart, Homebridge smoke test, Renovate config check
 renovate.json                  # Dependency updates (see below)
