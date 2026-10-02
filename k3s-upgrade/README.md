@@ -39,5 +39,9 @@ tar --zstd -xf /var/backups/k3s/k3s-<stamp>.tar.zst -C /var/lib/rancher/k3s
 systemctl start k3s
 ```
 
-After you are on the stable channel, replace the pinned `version:` with
-`channel: https://update.k3s.io/v1-release/channels/stable` for hands-off upgrades.
+Steady state: `plans/server-plan-channel.yaml` is applied on the cluster and follows patch
+releases of the current minor (`channels/v1.36`). Moving to the next minor stays a manual
+`upgrade-step.sh` run after checking addon compatibility.
+
+The NUC also has `/etc/apt/apt.conf.d/52auto-reboot` (reboot at 04:30 after unattended
+upgrades, only when nobody is logged in; the nightly backup runs at 03:30).
