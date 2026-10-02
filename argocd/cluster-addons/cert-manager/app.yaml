@@ -1,4 +1,4 @@
 repoURL: https://charts.jetstack.io
-targetRevision: 1.16.2
+targetRevision: 1.21.2
 chart: cert-manager
 namespace: cert
