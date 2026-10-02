@@ -1,4 +1,4 @@
 repoURL: https://argoproj.github.io/argo-helm
-targetRevision: 7.7.6
+targetRevision: 7.9.1
 chart: argo-cd
 namespace: argocd
