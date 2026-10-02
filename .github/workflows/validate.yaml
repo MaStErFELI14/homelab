@@ -1,0 +1,49 @@
+name: validate
+on:
+  pull_request:
+    paths: ["argocd/**", ".github/workflows/validate.yaml"]
+  workflow_dispatch:
+
+jobs:
+  render:
+    name: render charts
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: azure/setup-helm@v4
+    - name: helm template every OCI addon
+      run: |
+        set -euo pipefail
+        for dir in argocd/cluster-addons/*/; do
+          name=$(basename "$dir")
+          repo=$(yq '.repoURL' "$dir/app.yaml"); chart=$(yq '.chart' "$dir/app.yaml")
+          ver=$(yq '.targetRevision' "$dir/app.yaml"); ns=$(yq '.namespace' "$dir/app.yaml")
+          case "$repo" in
+            http*) helm repo add "r-$name" "$repo" >/dev/null; ref="r-$name/$chart" ;;
+            *)     ref="oci://$repo/$chart" ;;
+          esac
+          echo "::group::$name ($ref@$ver)"
+          helm template "$name" "$ref" --version "$ver" -n "$ns" -f "$dir/values.yaml" >/dev/null
+          echo "::endgroup::"
+        done
+
+  homebridge-smoke:
+    name: homebridge image smoke test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: boot the pinned image on a fresh config
+      run: |
+        set -euo pipefail
+        image=$(yq '.controllers.homebridge.containers.main.image | .repository + ":" + .tag' argocd/cluster-addons/homebridge/values.yaml)
+        echo "testing $image"
+        docker run -d --name hb -e HOMEBRIDGE_CONFIG_UI=1 -p 8581:8581 "$image"
+        for i in $(seq 1 60); do
+          code=$(curl -s -o /dev/null -m 3 -w '%{http_code}' http://localhost:8581/login || true)
+          running=$(docker logs hb 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -c 'is running on port' || true)
+          echo "try $i: ui=$code homebridge_started=$running"
+          if [ "$code" = 200 ] && [ "$running" -ge 1 ]; then echo "image OK"; exit 0; fi
+          sleep 5
+        done
+        docker logs hb 2>&1 | tail -60
+        exit 1
