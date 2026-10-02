@@ -2,3 +2,4 @@ repoURL: https://argoproj.github.io/argo-helm
 targetRevision: 8.2.7
 chart: argo-cd
 namespace: argocd
+serverSideApply: true
