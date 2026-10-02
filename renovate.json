@@ -1,27 +1,93 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "docker:pinDigests"],
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests"
+  ],
   "dependencyDashboard": true,
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Helm chart versions declared in argocd/cluster-addons/*/app.yaml",
-      "managerFilePatterns": ["/^argocd/cluster-addons/[^/]+/app\\.yaml$/"],
+      "description": "Helm charts from HTTP repos declared in argocd/cluster-addons/*/app.yaml (version may be quoted)",
+      "managerFilePatterns": [
+        "/^argocd/cluster-addons/[^/]+/app\\.yaml$/"
+      ],
       "matchStrings": [
-        "repoURL: (?<registryUrl>\\S+)\\ntargetRevision: (?<currentValue>\\S+)\\nchart: (?<depName>\\S+)"
+        "repoURL: (?<registryUrl>https?://\\S+)\\ntargetRevision: \"?(?<currentValue>[^\\s\"]+)\"?\\nchart: (?<depName>\\S+)"
       ],
       "datasourceTemplate": "helm"
+    },
+    {
+      "customType": "regex",
+      "description": "Helm charts from OCI registries (repoURL without scheme, e.g. ghcr.io/bjw-s-labs/helm)",
+      "managerFilePatterns": [
+        "/^argocd/cluster-addons/[^/]+/app\\.yaml$/"
+      ],
+      "matchStrings": [
+        "repoURL: (?<registry>[^\\s:/]+(?:/[^\\s:]+)*)\\ntargetRevision: \"?(?<currentValue>[^\\s\"]+)\"?\\nchart: (?<chartName>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "{{{registry}}}/{{{chartName}}}"
     }
   ],
   "packageRules": [
     {
+      "description": "Never pin digests onto chart versions in app.yaml (Argo targetRevision must stay a plain version)",
+      "matchFileNames": [
+        "argocd/cluster-addons/*/app.yaml"
+      ],
+      "pinDigests": false
+    },
+    {
+      "description": "Latest stable only: ignore prereleases, wait 3 days after release",
+      "matchDatasources": [
+        "helm",
+        "docker"
+      ],
+      "ignoreUnstable": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Chart patch bumps automerge once the validate workflow passes",
+      "matchDatasources": [
+        "helm",
+        "docker"
+      ],
+      "matchFileNames": [
+        "argocd/cluster-addons/*/app.yaml"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "ignoreTests": false
+    },
+    {
+      "description": "Chart minor/major bumps always need a manual merge (one PR per chart)",
+      "matchFileNames": [
+        "argocd/cluster-addons/*/app.yaml"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major"
+      ],
+      "automerge": false,
+      "labels": [
+        "manual-review"
+      ]
+    },
+    {
       "description": "Homebridge image: automerge only after the validate workflow passes",
-      "matchPackageNames": ["docker.io/homebridge/homebridge"],
+      "matchPackageNames": [
+        "docker.io/homebridge/homebridge"
+      ],
       "versioning": "loose",
       "automerge": true,
       "ignoreTests": false,
       "minimumReleaseAge": "3 days",
-      "schedule": ["before 6am on saturday"]
+      "schedule": [
+        "before 6am on saturday"
+      ]
     }
   ]
 }
