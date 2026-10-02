@@ -35,4 +35,3 @@ spec:
         syncOptions:
         - CreateNamespace=true
         - ServerSideApply={{ default false .serverSideApply }}
-          selfHeal: true
