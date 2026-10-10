@@ -24,6 +24,7 @@ argocd/
     argocd/  argocd-apps/  cert-manager/  cert-manager-issuers/
     gatus/  home-assistant/  homebridge/  matter-server/
 host/backup/                   # Nightly k3s backup (systemd timer), installed on the node
+host/heartbeat/                # Dead-man's-switch timer (healthchecks.io ping), installed on the node
 k3s-upgrade/                   # system-upgrade-controller plans + staged upgrade script
 .github/workflows/validate.yaml  # helm template of every chart, Homebridge smoke test, Renovate config check
 renovate.json                  # Dependency updates (see below)
@@ -57,6 +58,12 @@ cp k8s-secrets.yaml.example k8s-secrets.yaml   # add base64 Cloudflare token (gi
 ## Backups
 
 `host/backup/` installs a nightly timer (03:30 UTC) that stops k3s for a few seconds and archives the sqlite datastore, tokens/TLS and all `local-path` PVC data to `/var/backups/k3s` (14 kept). Set `BACKUP_REMOTE` in `/etc/default/k3s-backup` for an off-box copy. **Take a backup before any risky change** (`systemctl start k3s-backup`). Restore steps are in `k3s-upgrade/README.md`.
+
+After each run the script reports to the Gatus external endpoint `host_nightly-backup` (`POST $GATUS_URL/api/v1/endpoints/<key>/external?success=true|false`, bearer token). It retries for up to ~5 minutes because Gatus runs inside k3s, a failure sends `success=false`, and a heartbeat problem never fails the backup. Optional variables in `/etc/default/k3s-backup` (0600): `BACKUP_HEARTBEAT_TOKEN` (unset = no heartbeat), `GATUS_URL` (default `https://gatus.beaners.club`), `GATUS_ENDPOINT_KEY`. Re-run `host/backup/install.sh` after changing the script.
+
+## Dead-man's switch
+
+`host/heartbeat/` installs a timer (every 5 minutes) that pings a healthchecks.io check **only if** the node is Ready and Gatus answers `/health` (queried via its Service ClusterIP, so cert/DNS/ingress problems cannot mask or fake Gatus health). If either fails it stays silent and the missed ping raises the alert, covering a dead node, k3s or Gatus. `HEALTHCHECK_PING_URL` lives in `/etc/default/homelab-heartbeat` (0600, not in git). Install with `host/heartbeat/install.sh` on the node.
 
 ## Gotchas
 

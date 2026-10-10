@@ -1,0 +1,6 @@
+[Unit]
+Description=Homelab dead-man's-switch ping (node + Gatus health)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/homelab-heartbeat.sh
