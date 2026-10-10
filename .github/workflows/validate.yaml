@@ -9,7 +9,7 @@ jobs:
     name: renovate config
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: actions/setup-node@v4
       with:
         node-version: 24
@@ -20,7 +20,7 @@ jobs:
     name: render charts
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: azure/setup-helm@v4
     - name: helm template every OCI addon
       run: |
@@ -42,7 +42,7 @@ jobs:
     name: homebridge image smoke test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: boot the pinned image on a fresh config
       run: |
         set -euo pipefail
