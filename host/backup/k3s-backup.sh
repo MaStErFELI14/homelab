@@ -13,6 +13,7 @@ GATUS_URL=${GATUS_URL:-https://gatus.beaners.club}       # optional: Gatus base 
 GATUS_ENDPOINT_KEY=${GATUS_ENDPOINT_KEY:-host_nightly-backup}  # <group>_<name>, lowercased, spaces -> '-'
 RESTIC_REPOSITORY=${RESTIC_REPOSITORY:-}                 # optional: unset = no off-box upload
 BACKUP_HEARTBEAT_TOKEN=${BACKUP_HEARTBEAT_TOKEN:-}       # optional: unset = no heartbeat
+R2_MAX_BYTES=${R2_MAX_BYTES:-6000000000}                 # optional: alert when the restic repo exceeds this (~6 GB; R2 free tier is 10 GB)
 [ -f /etc/default/k3s-backup ] && . /etc/default/k3s-backup
 
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
@@ -84,8 +85,39 @@ upload_offsite() {
   return 1
 }
 
+# Repository size guard (keeps the bucket inside Cloudflare R2's free tier).
+# Sets size_high=1 when the repo exceeds R2_MAX_BYTES. If the stats command or
+# its parsing fails, a warning is logged and no alert is raised (size unknown).
+size_high=0
+check_repo_size() {
+  [ -n "$RESTIC_REPOSITORY" ] || return 0
+  local json bytes
+  if ! json=$(restic stats --mode raw-data --json 2>/dev/null); then
+    echo "WARNING: restic stats failed; repository size unknown" >&2
+    return 0
+  fi
+  bytes=$(printf '%s' "$json" | grep -o '"total_size":[0-9]*' | head -n1 | cut -d: -f2)
+  if ! [[ "$bytes" =~ ^[0-9]+$ ]]; then
+    echo "WARNING: could not parse restic stats output; repository size unknown" >&2
+    return 0
+  fi
+  echo "restic repository size: $((bytes / 1048576)) MiB (limit $((R2_MAX_BYTES / 1048576)) MiB)"
+  if [ "$bytes" -gt "$R2_MAX_BYTES" ]; then
+    echo "repository size exceeds limit" >&2
+    size_high=1
+  fi
+  return 0
+}
+
+# Exactly one heartbeat per run. Precedence: backup-failed (EXIT trap) >
+# offsite-upload-failed > r2-size-high. All of these still exit 0 except the first.
 if upload_offsite; then
-  heartbeat true
+  check_repo_size
+  if [ "$size_high" -eq 1 ]; then
+    heartbeat false r2-size-high
+  else
+    heartbeat true
+  fi
 else
   echo "offsite upload FAILED; local backup is intact" >&2
   heartbeat false offsite-upload-failed
