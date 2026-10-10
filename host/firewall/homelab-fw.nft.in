@@ -1,0 +1,20 @@
+# Template: install.sh substitutes @CLUSTER_CIDR@ and @SERVICE_CIDR@ and writes /etc/homelab-fw.nft.
+# Separate table so k3s/kube-router rules are never touched. Policy stays accept: only the
+# listed ports are dropped, and only for sources that are neither local nor in-cluster.
+table inet homelab_fw
+delete table inet homelab_fw
+
+table inet homelab_fw {
+  chain input {
+    type filter hook input priority filter - 10; policy accept;
+
+    iif "lo" accept
+    ct state established,related accept
+    # Any address owned by this node (pods and host processes calling the node IP).
+    fib saddr type local accept
+    ip saddr { @CLUSTER_CIDR@, @SERVICE_CIDR@ } accept
+
+    # Matter websocket, Homebridge UI, k3s API, kubelet: not for the LAN.
+    tcp dport { 5580, 8581, 6443, 10250 } counter drop
+  }
+}
