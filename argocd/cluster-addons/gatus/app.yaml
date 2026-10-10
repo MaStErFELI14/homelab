@@ -1,0 +1,4 @@
+repoURL: ghcr.io/bjw-s-labs/helm
+targetRevision: 5.2.1
+chart: app-template
+namespace: gatus
