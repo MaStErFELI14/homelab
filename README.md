@@ -61,6 +61,23 @@ cp k8s-secrets.yaml.example k8s-secrets.yaml   # add base64 Cloudflare token (gi
 
 After each run the script reports to the Gatus external endpoint `host_nightly-backup` (`POST $GATUS_URL/api/v1/endpoints/<key>/external?success=true|false`, bearer token). It retries for up to ~5 minutes because Gatus runs inside k3s, a failure sends `success=false`, and a heartbeat problem never fails the backup. Optional variables in `/etc/default/k3s-backup` (0600): `BACKUP_HEARTBEAT_TOKEN` (unset = no heartbeat), `GATUS_URL` (default `https://gatus.beaners.club`), `GATUS_ENDPOINT_KEY`. Re-run `host/backup/install.sh` after changing the script.
 
+### Off-box backups (restic to S3-compatible storage)
+
+After the local archive is written and k3s is back up, the script uploads it with `restic backup --tag k3s` to an encrypted repository (client-side encryption; the bucket only holds restic's data layout) and then prunes with `--keep-daily 14 --keep-weekly 4`. Failed uploads are retried 3 times with backoff. The local backup still counts, but the heartbeat then reports `success=false&error=offsite-upload-failed`, so Gatus alerts. The upload is enabled only when `RESTIC_REPOSITORY` is set in `/etc/default/k3s-backup` (0600, root). Variables (names only): `RESTIC_REPOSITORY` (`s3:<endpoint host>/<bucket>/k3s`), `RESTIC_PASSWORD`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` (`auto` for Cloudflare R2). Install `restic` on the node (`apt install restic`) and run `restic init` once. **Store the restic password and the bucket keys in your password manager as well: without the password the off-box data is unrecoverable.**
+
+Restore on a fresh node (install k3s of the same minor version first, then stop it):
+
+```bash
+set -a; . /etc/default/k3s-backup; set +a   # or export the five variables by hand
+restic snapshots --tag k3s
+mkdir /var/tmp/restore && restic restore latest --tag k3s --target /var/tmp/restore
+systemctl stop k3s
+tar --zstd -xf "$(find /var/tmp/restore -name 'k3s-*.tar.zst')" -C /var/lib/rancher/k3s
+systemctl start k3s
+```
+
+Then check `kubectl get nodes`, Argo CD applications, certificates, and remove `/var/tmp/restore`. Use `restic restore <snapshot-id>` for an older snapshot, and `restic check` to verify the repository.
+
 ## Dead-man's switch
 
 `host/heartbeat/` installs a timer (every 5 minutes) that pings a healthchecks.io check **only if** the node is Ready and Gatus answers `/health` (queried via its Service ClusterIP, so cert/DNS/ingress problems cannot mask or fake Gatus health). If either fails it stays silent and the missed ping raises the alert, covering a dead node, k3s or Gatus. `HEALTHCHECK_PING_URL` lives in `/etc/default/homelab-heartbeat` (0600, not in git). Install with `host/heartbeat/install.sh` on the node.

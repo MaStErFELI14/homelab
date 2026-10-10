@@ -2,7 +2,8 @@
 # Nightly k3s backup: datastore (sqlite), TLS/token, and local-path PVC data.
 # k3s is stopped for a few seconds so state.db is copied consistently;
 # running containers keep running (KillMode=process).
-# Optionally reports the result to a Gatus external endpoint (see README).
+# Optionally uploads the archive to an encrypted restic repository (S3-compatible,
+# e.g. Cloudflare R2) and reports the result to a Gatus external endpoint (see README).
 set -euo pipefail
 
 BACKUP_DIR=${BACKUP_DIR:-/var/backups/k3s}
@@ -10,6 +11,7 @@ KEEP=${KEEP:-14}
 BACKUP_REMOTE=${BACKUP_REMOTE:-}   # optional scp target, e.g. user@nas:/volume1/backups/k3s
 GATUS_URL=${GATUS_URL:-https://gatus.beaners.club}       # optional: Gatus base URL
 GATUS_ENDPOINT_KEY=${GATUS_ENDPOINT_KEY:-host_nightly-backup}  # <group>_<name>, lowercased, spaces -> '-'
+RESTIC_REPOSITORY=${RESTIC_REPOSITORY:-}                 # optional: unset = no off-box upload
 BACKUP_HEARTBEAT_TOKEN=${BACKUP_HEARTBEAT_TOKEN:-}       # optional: unset = no heartbeat
 [ -f /etc/default/k3s-backup ] && . /etc/default/k3s-backup
 
@@ -61,4 +63,30 @@ stopped=0
 # retention
 ls -1t "$BACKUP_DIR"/k3s-*.tar.zst | tail -n +$((KEEP + 1)) | xargs -r rm -f
 echo "backup written: $out ($(du -h "$out" | cut -f1))"
-heartbeat true
+
+# Off-box copy via restic. Enabled only when RESTIC_REPOSITORY is set; the
+# credentials (RESTIC_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+# AWS_DEFAULT_REGION) come from /etc/default/k3s-backup and are never logged.
+# Failure does not fail the local backup but reports a failed heartbeat.
+upload_offsite() {
+  [ -n "$RESTIC_REPOSITORY" ] || return 0
+  export RESTIC_REPOSITORY RESTIC_PASSWORD AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
+  local attempt
+  for attempt in 1 2 3; do
+    if restic backup "$out" --tag k3s --quiet &&
+       restic forget --tag k3s --keep-daily 14 --keep-weekly 4 --prune --quiet; then
+      echo "offsite upload ok"
+      return 0
+    fi
+    echo "offsite upload attempt $attempt failed" >&2
+    [ "$attempt" -lt 3 ] && sleep $((attempt * 60))
+  done
+  return 1
+}
+
+if upload_offsite; then
+  heartbeat true
+else
+  echo "offsite upload FAILED; local backup is intact" >&2
+  heartbeat false offsite-upload-failed
+fi
