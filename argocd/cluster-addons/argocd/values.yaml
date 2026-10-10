@@ -1,6 +1,12 @@
 global:
   domain: argocd.beaners.club
 server:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
   certificate:
     enabled: true
     issuer:
@@ -18,6 +24,12 @@ configs:
   cm:
     exec.enabled: true
 notifications:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 48Mi
+    limits:
+      memory: 256Mi
   # Secret is created out of band (key: discord-webhook-url) so the webhook URL stays out of git.
   # The live Secret carries argocd.argoproj.io/sync-options: Prune=false.
   secret:
@@ -65,3 +77,46 @@ notifications:
     - on-sync-failed
     - on-health-degraded
     - on-sync-status-unknown
+# Requests ~ typical usage, generous memory limits, no CPU limits (avoid throttling).
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 320Mi
+    limits:
+      memory: 1Gi
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+  copyutil:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 16Mi
+      limits:
+        memory: 128Mi
+applicationSet:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+dex:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 48Mi
+    limits:
+      memory: 256Mi
+redis:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      memory: 256Mi
