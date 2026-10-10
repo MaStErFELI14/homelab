@@ -153,7 +153,7 @@ configMaps:
           group: host
           token: ${DISK_HEALTH_TOKEN}
           heartbeat:
-            interval: 8d
+            interval: 192h
           alerts:
           - type: discord
             failure-threshold: 1
