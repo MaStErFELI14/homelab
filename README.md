@@ -25,6 +25,7 @@ argocd/
     gatus/  home-assistant/  homebridge/  matter-server/
 host/backup/                   # Nightly k3s backup (systemd timer), installed on the node
 host/heartbeat/                # Dead-man's-switch timer (healthchecks.io ping), installed on the node
+host/ssh/                      # Key-only SSH drop-in, installed on the node
 host/firewall/                 # nftables table dropping LAN access to internal service ports, installed on the node
 k3s-upgrade/                   # system-upgrade-controller plans + staged upgrade script
 .github/workflows/validate.yaml  # helm template of every chart, Homebridge smoke test, Renovate config check
@@ -85,7 +86,11 @@ Then check `kubectl get nodes`, Argo CD applications, certificates, and remove `
 
 ## Host firewall
 
-`host/firewall/` installs a separate nftables table (`inet homelab_fw`, input hook, policy accept) that drops TCP 5580 (Matter), 8581 (Homebridge UI), 6443 (k3s API) and 10250 (kubelet) unless the traffic is from loopback, established, from an address owned by the node, or from the cluster/service CIDRs (templated at install, k3s defaults). k3s rules and the distro `nftables.service` are not used. Ingress, SSH, Home Assistant (8123) and HomeKit ports stay open. `install.sh` checks the syntax, arms a 5 minute rollback timer (`homelab-fw-rollback`), loads the table via `homelab-fw.service` (persistent) and tells you to cancel the timer (`systemctl stop homelab-fw-rollback.timer`) after verifying. Remove with `systemctl disable --now homelab-fw`. For remote `kubectl`, tunnel over SSH.
+`host/firewall/` installs a separate nftables table (`inet homelab_fw`, input hook, policy accept) that drops TCP 5580 (Matter), 8123 (Home Assistant direct HTTP; use the ingress URL), 8581 (Homebridge UI), 6443 (k3s API) and 10250 (kubelet) unless the traffic is from loopback, established, from an address owned by the node, or from the cluster/service CIDRs (templated at install, k3s defaults). k3s rules and the distro `nftables.service` are not used. Ingress, SSH and HomeKit ports stay open. `install.sh` checks the syntax, arms a 5 minute rollback timer (`homelab-fw-rollback`), loads the table via `homelab-fw.service` (persistent) and tells you to cancel the timer (`systemctl stop homelab-fw-rollback.timer`) after verifying. Remove with `systemctl disable --now homelab-fw`. For remote `kubectl`, tunnel over SSH.
+
+## SSH hardening
+
+`host/ssh/` installs `/etc/ssh/sshd_config.d/10-homelab-hardening.conf` (`PasswordAuthentication no`, `KbdInteractiveAuthentication no`, `PermitRootLogin prohibit-password`). The `10-` prefix matters: sshd is first-match-wins and reads drop-ins before the main file. `install.sh` is idempotent, refuses to run without an authorized key, runs `sshd -t`, arms a 5 minute rollback timer (`homelab-ssh-rollback`) and reloads sshd. Keep your session open, test with a new connection (key works, password is refused), then `systemctl stop homelab-ssh-rollback.timer`. Remove by deleting the drop-in and running `systemctl reload ssh`.
 
 ## Gotchas
 
