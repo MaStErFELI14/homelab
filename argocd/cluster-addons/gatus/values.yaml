@@ -1,0 +1,162 @@
+# Gatus status page. Config lives in the ConfigMap below; secrets come from the
+# out-of-band Secret `gatus-secrets` (keys DISCORD_WEBHOOK_URL,
+# BACKUP_HEARTBEAT_TOKEN), which is NOT in git. Gatus expands ${VAR} in its
+# config file from the container environment.
+# State is in memory (no PVC): history resets on pod restart, which is fine here.
+defaultPodOptions:
+  enableServiceLinks: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+
+controllers:
+  gatus:
+    strategy: Recreate
+    containers:
+      main:
+        image:
+          repository: ghcr.io/twin/gatus
+          tag: v5.37.0@sha256:094eb186e55235db367e90e9d56140e5897b7044c41de23cde4cc18e6da1242e
+          pullPolicy: IfNotPresent
+        env:
+          GATUS_CONFIG_PATH: /config/config.yaml
+        envFrom:
+        - secretRef:
+            name: gatus-secrets
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 20
+              timeoutSeconds: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 3
+              periodSeconds: 10
+              timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
+service:
+  gatus:
+    controller: gatus
+    ports:
+      http:
+        port: 8080
+        protocol: HTTP
+
+ingress:
+  gatus:
+    className: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+    - host: gatus.beaners.club
+      paths:
+      - path: /
+        pathType: Prefix
+        service:
+          identifier: gatus
+          port: http
+    tls:
+    - secretName: gatus-tls-0
+      hosts:
+      - gatus.beaners.club
+
+configMaps:
+  config:
+    data:
+      config.yaml: |
+        storage:
+          type: memory
+        web:
+          port: 8080
+        alerting:
+          discord:
+            webhook-url: ${DISCORD_WEBHOOK_URL}
+            default-alert:
+              failure-threshold: 3
+              success-threshold: 2
+              send-on-resolved: true
+        endpoints:
+        - name: Argo CD
+          group: apps
+          url: https://argocd.beaners.club
+          interval: 1m
+          conditions:
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 2000"
+          - "[CERTIFICATE_EXPIRATION] > 168h"
+          alerts:
+          - type: discord
+        - name: Home Assistant
+          group: apps
+          url: https://hass.beaners.club
+          interval: 1m
+          conditions:
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 2000"
+          - "[CERTIFICATE_EXPIRATION] > 168h"
+          alerts:
+          - type: discord
+        - name: Homebridge
+          group: apps
+          url: https://homebridge.beaners.club
+          interval: 1m
+          conditions:
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 2000"
+          - "[CERTIFICATE_EXPIRATION] > 168h"
+          alerts:
+          - type: discord
+        - name: Matter server
+          group: apps
+          url: https://matter.beaners.club
+          interval: 1m
+          conditions:
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 2000"
+          - "[CERTIFICATE_EXPIRATION] > 168h"
+          alerts:
+          - type: discord
+        external-endpoints:
+        - name: Nightly backup
+          group: host
+          token: ${BACKUP_HEARTBEAT_TOKEN}
+          heartbeat:
+            interval: 26h
+          alerts:
+          - type: discord
+            failure-threshold: 1
+
+persistence:
+  config:
+    type: configMap
+    identifier: config
+    advancedMounts:
+      gatus:
+        main:
+        - path: /config
+          readOnly: true
