@@ -1,0 +1,8 @@
+[Unit]
+Description=Homelab weekly SMART disk-health check (reports to Gatus)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/homelab-smart-check.sh

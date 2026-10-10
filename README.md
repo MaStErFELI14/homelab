@@ -25,6 +25,7 @@ argocd/
     gatus/  home-assistant/  homebridge/  matter-server/
 host/backup/                   # Nightly k3s backup (systemd timer), installed on the node
 host/heartbeat/                # Dead-man's-switch timer (healthchecks.io ping), installed on the node
+host/smart/                    # Weekly SMART disk-health check (systemd timer, reports to Gatus), installed on the node
 host/ssh/                      # Key-only SSH drop-in, installed on the node
 host/firewall/                 # nftables table dropping LAN access to internal service ports, installed on the node
 k3s-upgrade/                   # system-upgrade-controller plans + staged upgrade script
@@ -83,6 +84,10 @@ Then check `kubectl get nodes`, Argo CD applications, certificates, and remove `
 ## Dead-man's switch
 
 `host/heartbeat/` installs a timer (every 5 minutes) that pings a healthchecks.io check **only if** the node is Ready and Gatus answers `/health` (queried via its Service ClusterIP, so cert/DNS/ingress problems cannot mask or fake Gatus health). If either fails it stays silent and the missed ping raises the alert, covering a dead node, k3s or Gatus. `HEALTHCHECK_PING_URL` lives in `/etc/default/homelab-heartbeat` (0600, not in git). Install with `host/heartbeat/install.sh` on the node.
+
+## Disk health
+
+`host/smart/` installs a weekly timer (Sundays 04:10 UTC, up to 30 min random delay, `Persistent=true`) that runs `smartctl -H -A` on the system disk and reports to the Gatus external endpoint `host_disk-health` (Discord alert on the first failure; the endpoint expects a push at least every 8 days). It reports `success=false` with a short error when the overall health is not PASSED (`smart-failed`), when Reallocated_Sector_Ct, Current_Pending_Sector, Offline_Uncorrectable or Uncorrectable_Error_Cnt are above 0 (`...-increased` if they grew since the previous run, otherwise `...-nonzero`), when the CRC error count grew (`crc-errors-increased`), when the normalized Wear_Leveling_Count drops below 20 (`wear-below-20`) or the temperature exceeds 60 C (`temp-<C>`). The previous values are kept in `/var/lib/homelab-smart/last.json`, a one-line summary goes to the journal (`journalctl -u homelab-smart-check`), and an unreachable Gatus is retried and logged but never fails the unit. Config in `/etc/default/homelab-smart-check` (0600): `DISK_HEALTH_TOKEN`, optional `GATUS_URL`, `GATUS_ENDPOINT_KEY`, `SMART_DEVICE` (default `/dev/sda`). Needs `smartmontools` and `python3`; the token is the `DISK_HEALTH_TOKEN` key of the `gatus-secrets` Secret. Install with `host/smart/install.sh`. Setting `SMART_TEST_FORCE_FAIL=1` for one manual run sends a test failure without touching the state.
 
 ## Host firewall
 

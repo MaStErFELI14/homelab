@@ -1,0 +1,10 @@
+[Unit]
+Description=Homelab weekly SMART disk-health check
+
+[Timer]
+OnCalendar=Sun *-*-* 04:10:00 UTC
+RandomizedDelaySec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
