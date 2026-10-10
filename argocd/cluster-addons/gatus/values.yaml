@@ -149,6 +149,14 @@ configMaps:
           alerts:
           - type: discord
             failure-threshold: 1
+        - name: Disk health
+          group: host
+          token: ${DISK_HEALTH_TOKEN}
+          heartbeat:
+            interval: 8d
+          alerts:
+          - type: discord
+            failure-threshold: 1
         - name: Matter devices
           group: apps
           token: ${MATTER_HEALTH_TOKEN}
