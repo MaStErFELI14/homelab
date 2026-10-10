@@ -34,19 +34,19 @@ notifications:
         discord:
           method: POST
           body: |
-            {"content": "Argo CD: sync FAILED for {{.app.metadata.name}} (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{.app.status.sync.revision | trunc 7}})"}
+            {"content": "Argo CD: sync FAILED for {{.app.metadata.name}} (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{if .app.status.sync.revisions}}{{index .app.status.sync.revisions (sub (len .app.status.sync.revisions) 1) | trunc 7}}{{else}}{{.app.status.sync.revision | default "" | trunc 7}}{{end}})"}
     template.app-health-degraded: |
       webhook:
         discord:
           method: POST
           body: |
-            {"content": "Argo CD: {{.app.metadata.name}} is DEGRADED (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{.app.status.sync.revision | trunc 7}})"}
+            {"content": "Argo CD: {{.app.metadata.name}} is DEGRADED (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{if .app.status.sync.revisions}}{{index .app.status.sync.revisions (sub (len .app.status.sync.revisions) 1) | trunc 7}}{{else}}{{.app.status.sync.revision | default "" | trunc 7}}{{end}})"}
     template.app-sync-unknown: |
       webhook:
         discord:
           method: POST
           body: |
-            {"content": "Argo CD: sync status UNKNOWN for {{.app.metadata.name}} (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{.app.status.sync.revision | trunc 7}})"}
+            {"content": "Argo CD: sync status UNKNOWN for {{.app.metadata.name}} (sync={{.app.status.sync.status}}, health={{.app.status.health.status}}, rev={{if .app.status.sync.revisions}}{{index .app.status.sync.revisions (sub (len .app.status.sync.revisions) 1) | trunc 7}}{{else}}{{.app.status.sync.revision | default "" | trunc 7}}{{end}})"}
   triggers:
     trigger.on-sync-failed: |
       - when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
@@ -60,7 +60,7 @@ notifications:
         send: [app-sync-unknown]
   subscriptions:
   - recipients:
-    - webhook:discord
+    - discord
     triggers:
     - on-sync-failed
     - on-health-degraded
