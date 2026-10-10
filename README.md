@@ -25,6 +25,7 @@ argocd/
     gatus/  home-assistant/  homebridge/  matter-server/
 host/backup/                   # Nightly k3s backup (systemd timer), installed on the node
 host/heartbeat/                # Dead-man's-switch timer (healthchecks.io ping), installed on the node
+host/firewall/                 # nftables table dropping LAN access to internal service ports, installed on the node
 k3s-upgrade/                   # system-upgrade-controller plans + staged upgrade script
 .github/workflows/validate.yaml  # helm template of every chart, Homebridge smoke test, Renovate config check
 renovate.json                  # Dependency updates (see below)
@@ -81,6 +82,10 @@ Then check `kubectl get nodes`, Argo CD applications, certificates, and remove `
 ## Dead-man's switch
 
 `host/heartbeat/` installs a timer (every 5 minutes) that pings a healthchecks.io check **only if** the node is Ready and Gatus answers `/health` (queried via its Service ClusterIP, so cert/DNS/ingress problems cannot mask or fake Gatus health). If either fails it stays silent and the missed ping raises the alert, covering a dead node, k3s or Gatus. `HEALTHCHECK_PING_URL` lives in `/etc/default/homelab-heartbeat` (0600, not in git). Install with `host/heartbeat/install.sh` on the node.
+
+## Host firewall
+
+`host/firewall/` installs a separate nftables table (`inet homelab_fw`, input hook, policy accept) that drops TCP 5580 (Matter), 8581 (Homebridge UI), 6443 (k3s API) and 10250 (kubelet) unless the traffic is from loopback, established, from an address owned by the node, or from the cluster/service CIDRs (templated at install, k3s defaults). k3s rules and the distro `nftables.service` are not used. Ingress, SSH, Home Assistant (8123) and HomeKit ports stay open. `install.sh` checks the syntax, arms a 5 minute rollback timer (`homelab-fw-rollback`), loads the table via `homelab-fw.service` (persistent) and tells you to cancel the timer (`systemctl stop homelab-fw-rollback.timer`) after verifying. Remove with `systemctl disable --now homelab-fw`. For remote `kubectl`, tunnel over SSH.
 
 ## Gotchas
 

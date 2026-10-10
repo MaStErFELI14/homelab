@@ -1,0 +1,14 @@
+[Unit]
+Description=Homelab host firewall (drop sensitive service ports from the LAN)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/homelab-fw.nft
+ExecReload=/usr/sbin/nft -f /etc/homelab-fw.nft
+ExecStop=/usr/sbin/nft delete table inet homelab_fw
+
+[Install]
+WantedBy=multi-user.target
