@@ -2,3 +2,31 @@ crds:
   enabled: true
 dns01RecursiveNameservers: "1.1.1.1:53,8.8.8.8:53"
 dns01RecursiveNameserversOnly: true
+# Requests ~ typical usage, generous memory limits, no CPU limits (avoid throttling).
+resources:
+  requests:
+    cpu: 10m
+    memory: 48Mi
+  limits:
+    memory: 256Mi
+cainjector:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 256Mi
+startupapicheck:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
