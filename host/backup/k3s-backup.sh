@@ -21,8 +21,8 @@ mkdir -p "$BACKUP_DIR"
 # which may still be starting. The token goes to curl via stdin, not argv.
 heartbeat() {
   [ -n "$BACKUP_HEARTBEAT_TOKEN" ] || return 0
-  local ok=$1 err=${2:-} i
-  for i in $(seq 1 30); do
+  local ok=$1 err=${2:-}
+  for _ in $(seq 1 30); do
     if printf 'header = "Authorization: Bearer %s"\n' "$BACKUP_HEARTBEAT_TOKEN" |
        curl -fsS -m 10 -K - -X POST -G --data-urlencode "success=$ok" --data-urlencode "error=$err" \
          -o /dev/null "$GATUS_URL/api/v1/endpoints/$GATUS_ENDPOINT_KEY/external" 2>/dev/null; then
