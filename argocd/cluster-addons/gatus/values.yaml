@@ -1,6 +1,6 @@
 # Gatus status page. Config lives in the ConfigMap below; secrets come from the
 # out-of-band Secret `gatus-secrets` (keys DISCORD_WEBHOOK_URL,
-# BACKUP_HEARTBEAT_TOKEN), which is NOT in git. Gatus expands ${VAR} in its
+# BACKUP_HEARTBEAT_TOKEN, MATTER_HEALTH_TOKEN), which is NOT in git. Gatus expands ${VAR} in its
 # config file from the container environment.
 # State is in memory (no PVC): history resets on pod restart, which is fine here.
 defaultPodOptions:
@@ -146,6 +146,14 @@ configMaps:
           token: ${BACKUP_HEARTBEAT_TOKEN}
           heartbeat:
             interval: 26h
+          alerts:
+          - type: discord
+            failure-threshold: 1
+        - name: Matter devices
+          group: apps
+          token: ${MATTER_HEALTH_TOKEN}
+          heartbeat:
+            interval: 15m
           alerts:
           - type: discord
             failure-threshold: 1
