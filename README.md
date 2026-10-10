@@ -8,7 +8,7 @@ GitOps-managed homelab on an Intel NUC running single-node k3s, deployed with Ar
 |---------|------|-------|
 | Argo CD | argocd.beaners.club | Self-managed |
 | Home Assistant | hass.beaners.club | `hostNetwork`, PVC on `local-path` |
-| Matter server | matter.beaners.club | matter.js server, `hostNetwork` |
+| Matter server | none (no ingress) | matter.js server, `hostNetwork` |
 | Homebridge | homebridge.beaners.club | bjw-s `app-template`, PVC retained |
 | Gatus | gatus.beaners.club | Status page and alerts, in-memory state, needs `gatus-secrets` |
 
