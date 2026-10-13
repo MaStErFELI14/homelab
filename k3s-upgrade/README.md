@@ -13,6 +13,8 @@ Kubernetes does not allow skipping minor versions, so minor bumps are manual, on
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/download/v0.20.2/crd.yaml
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/download/v0.20.2/system-upgrade-controller.yaml
 kubectl apply -f plans/server-plan-channel.yaml
+# resources for the controller (re-apply after every controller upgrade)
+kubectl -n system-upgrade patch deployment system-upgrade-controller --patch-file suc-resources-patch.yaml
 
 # nightly backups (on the node, as root): copy host/backup there and run install.sh
 ```
