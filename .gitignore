@@ -3,3 +3,6 @@ k8s-secrets.yaml
 docs/
 CLAUDE.md
 .env.local
+*.swp
+*.swo
+.env.local.*
