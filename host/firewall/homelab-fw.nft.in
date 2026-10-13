@@ -14,7 +14,7 @@ table inet homelab_fw {
     fib saddr type local accept
     ip saddr { @CLUSTER_CIDR@, @SERVICE_CIDR@ } accept
 
-    # Matter websocket, Homebridge UI, k3s API, kubelet: not for the LAN.
-    tcp dport { 5580, 8581, 6443, 10250 } counter drop
+    # Matter websocket, Home Assistant HTTP (ingress only), Homebridge UI, k3s API, kubelet: not for the LAN.
+    tcp dport { 5580, 8123, 8581, 6443, 10250 } counter drop
   }
 }
