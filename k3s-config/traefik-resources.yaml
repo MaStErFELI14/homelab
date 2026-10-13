@@ -1,0 +1,16 @@
+# Resource settings for the k3s-bundled Traefik. Not Argo-managed: copy to
+# /var/lib/rancher/k3s/server/manifests/ on the node (k3s applies it and merges
+# it over the packaged HelmChart values; it survives k3s upgrades).
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi

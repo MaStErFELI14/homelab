@@ -1,0 +1,14 @@
+# Strategic-merge patch giving system-upgrade-controller requests and a memory limit.
+# Apply with: kubectl -n system-upgrade patch deployment system-upgrade-controller --patch-file suc-resources-patch.yaml
+# Re-apply after every system-upgrade-controller upgrade (the upstream manifest has no resources).
+spec:
+  template:
+    spec:
+      containers:
+        - name: system-upgrade-controller
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
