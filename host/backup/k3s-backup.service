@@ -3,4 +3,6 @@ Description=k3s datastore and PVC backup
 
 [Service]
 Type=oneshot
+CacheDirectory=restic
+Environment=RESTIC_CACHE_DIR=/var/cache/restic
 ExecStart=/usr/local/sbin/k3s-backup.sh
