@@ -35,3 +35,9 @@ podAnnotations:
 # disable probes so it is not killed before it listens on 5580.
 livenessProbe: null
 readinessProbe: null
+
+# Only Home Assistant (hostNetwork, ws://127.0.0.1:5580/ws) talks to the server:
+# bind the websocket to loopback so it is not reachable from the network.
+extraArgs:
+  - --listen-address
+  - 127.0.0.1
