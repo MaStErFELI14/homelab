@@ -2,13 +2,15 @@
 # out-of-band Secret `gatus-secrets` (keys DISCORD_WEBHOOK_URL,
 # BACKUP_HEARTBEAT_TOKEN, MATTER_HEALTH_TOKEN), which is NOT in git. Gatus expands ${VAR} in its
 # config file from the container environment.
-# State is in memory (no PVC): history resets on pod restart, which is fine here.
+# History and external-endpoint results are kept in sqlite on a small local-path PVC.
 defaultPodOptions:
   enableServiceLinks: false
   securityContext:
     runAsNonRoot: true
     runAsUser: 65534
     runAsGroup: 65534
+    fsGroup: 65534
+    fsGroupChangePolicy: OnRootMismatch
 
 controllers:
   gatus:
@@ -90,7 +92,8 @@ configMaps:
     data:
       config.yaml: |
         storage:
-          type: memory
+          type: sqlite
+          path: /data/data.db
         web:
           port: 8080
         alerting:
@@ -166,3 +169,12 @@ persistence:
         main:
         - path: /config
           readOnly: true
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    storageClass: local-path
+    advancedMounts:
+      gatus:
+        main:
+        - path: /data
