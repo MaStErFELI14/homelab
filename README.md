@@ -109,3 +109,4 @@ Then check `kubectl get nodes`, Argo CD applications, certificates, and remove `
 1. `argocd/cluster-addons/<name>/app.yaml` with `repoURL`, `targetRevision`, `chart`, `namespace` in exactly that order (Renovate parses it).
 2. `values.yaml` with overrides.
 3. Open a PR; `validate` renders the chart. Merge and Argo CD deploys it.
+
