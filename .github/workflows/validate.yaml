@@ -1,12 +1,59 @@
 name: validate
 on:
   pull_request:
-    paths: ["argocd/**", "renovate.json", ".github/workflows/validate.yaml"]
   workflow_dispatch:
 
 jobs:
+  # Every PR runs this workflow so the aggregate `ci-ok` check always reports
+  # (needed for branch protection). Expensive jobs skip when their paths are untouched.
+  changes:
+    name: detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      argocd: ${{ steps.diff.outputs.argocd }}
+      homebridge: ${{ steps.diff.outputs.homebridge }}
+      renovate: ${{ steps.diff.outputs.renovate }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - id: diff
+      env:
+        EVENT: ${{ github.event_name }}
+        BASE: ${{ github.event.pull_request.base.sha }}
+        HEAD: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set -euo pipefail
+        if [ "$EVENT" = pull_request ]; then
+          files=$(git diff --name-only "$BASE" "$HEAD")
+        else
+          files="argocd/ renovate.json .github/workflows/validate.yaml"
+        fi
+        echo "$files"
+        wf='^\.github/workflows/validate\.yaml$'
+        hit() { if echo "$files" | grep -Eq "$1"; then echo true; else echo false; fi; }
+        {
+          echo "argocd=$(hit "^argocd/|$wf")"
+          echo "homebridge=$(hit "^argocd/cluster-addons/homebridge/|$wf")"
+          echo "renovate=$(hit "^renovate\.json$|$wf")"
+        } >> "$GITHUB_OUTPUT"
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: shellcheck host scripts
+      run: |
+        set -euo pipefail
+        shopt -s globstar nullglob
+        shellcheck --version
+        shellcheck --severity=warning host/**/*.sh
+
   renovate-config:
     name: renovate config
+    needs: changes
+    if: needs.changes.outputs.renovate == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
@@ -18,6 +65,8 @@ jobs:
 
   render:
     name: render charts
+    needs: changes
+    if: needs.changes.outputs.argocd == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
@@ -40,6 +89,8 @@ jobs:
 
   homebridge-smoke:
     name: homebridge image smoke test
+    needs: changes
+    if: needs.changes.outputs.homebridge == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
@@ -58,3 +109,19 @@ jobs:
         done
         docker logs hb 2>&1 | tail -60
         exit 1
+
+  # Single stable check for branch protection. Skipped path-gated jobs count as OK.
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [changes, shellcheck, renovate-config, render, homebridge-smoke]
+    runs-on: ubuntu-latest
+    steps:
+    - name: require no failed or cancelled jobs
+      env:
+        RESULTS: ${{ join(needs.*.result, ' ') }}
+      run: |
+        echo "results: $RESULTS"
+        case " $RESULTS " in
+          *" failure "*|*" cancelled "*) exit 1 ;;
+        esac
