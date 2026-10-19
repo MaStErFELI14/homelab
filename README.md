@@ -60,7 +60,7 @@ cp k8s-secrets.yaml.example k8s-secrets.yaml   # add base64 Cloudflare token (gi
 
 ## Backups
 
-`host/backup/` installs a nightly timer (03:30 UTC) that stops k3s for a few seconds and archives the sqlite datastore, tokens/TLS and all `local-path` PVC data to `/var/backups/k3s` (14 kept). Set `BACKUP_REMOTE` in `/etc/default/k3s-backup` for an off-box copy. **Take a backup before any risky change** (`systemctl start k3s-backup`). Restore steps are in `k3s-upgrade/README.md`.
+`host/backup/` installs a nightly timer (08:00 UTC) that stops k3s for a few seconds and archives the sqlite datastore, tokens/TLS and all `local-path` PVC data to `/var/backups/k3s` (14 kept). Set `BACKUP_REMOTE` in `/etc/default/k3s-backup` for an off-box copy. **Take a backup before any risky change** (`systemctl start k3s-backup`). Restore steps are in `k3s-upgrade/README.md`.
 
 After each run the script reports to the Gatus external endpoint `host_nightly-backup` (`POST $GATUS_URL/api/v1/endpoints/<key>/external?success=true|false`, bearer token). It retries for up to ~5 minutes because Gatus runs inside k3s, a failure sends `success=false`, and a heartbeat problem never fails the backup. Optional variables in `/etc/default/k3s-backup` (0600): `BACKUP_HEARTBEAT_TOKEN` (unset = no heartbeat), `GATUS_URL` (default `https://gatus.beaners.club`), `GATUS_ENDPOINT_KEY`. Re-run `host/backup/install.sh` after changing the script.
 
