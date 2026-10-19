@@ -20,7 +20,7 @@ kubectl -n system-upgrade patch deployment system-upgrade-controller --patch-fil
 ```
 
 Offsite copy: put `BACKUP_REMOTE=user@host:/path` in `/etc/default/k3s-backup`.
-Unattended OS upgrades reboot at 04:30 (`/etc/apt/apt.conf.d/52auto-reboot`, only when nobody is logged in); the backup runs at 03:30.
+Unattended OS upgrades reboot at 04:30 (`/etc/apt/apt.conf.d/52auto-reboot`, only when nobody is logged in); the backup runs at 08:00 UTC.
 
 ## Moving to the next minor (e.g. v1.36 -> v1.37)
 
