@@ -1,4 +1,4 @@
 repoURL: https://argoproj.github.io/argo-helm
-targetRevision: 2.0.6
+targetRevision: 2.0.7
 chart: argocd-apps
 namespace: argocd
