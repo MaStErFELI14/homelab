@@ -1,4 +1,4 @@
 repoURL: http://pajikos.github.io/home-assistant-helm-chart
-targetRevision: 0.3.88
+targetRevision: 0.3.89
 chart: home-assistant
 namespace: home
